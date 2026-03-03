@@ -9,20 +9,30 @@ def home():
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    file = request.files["file"]
-
-    if not file:
-        return "No file uploaded"
-
-    math_marks = []
-    physics_marks = []
-    python_marks = []
-    students = []
-
-    stream = file.stream.read().decode("UTF8").splitlines()
-    reader = csv.DictReader(stream)
-
     try:
+        if "file" not in request.files:
+            return "No file uploaded."
+
+        file = request.files["file"]
+
+        if file.filename == "":
+            return "No file selected."
+
+        if not file.filename.endswith(".csv"):
+            return "Invalid file type. Please upload a CSV file."
+
+        math_marks = []
+        physics_marks = []
+        python_marks = []
+        students = []
+
+        stream = file.stream.read().decode("UTF8").splitlines()
+        reader = csv.DictReader(stream)
+
+        required_columns = {"Name", "Math", "Physics", "Python"}
+        if not required_columns.issubset(reader.fieldnames):
+            return "Invalid CSV format. Required columns: Name, Math, Physics, Python."
+
         for row in reader:
             name = row["Name"]
             math = int(row["Math"])
@@ -43,8 +53,57 @@ def analyze():
                 "total": total
             })
 
+        if not students:
+            return "CSV file is empty."
+
+        avg_math = sum(math_marks) / len(math_marks)
+        avg_physics = sum(physics_marks) / len(physics_marks)
+        avg_python = sum(python_marks) / len(python_marks)
+
+        averages = {
+            "Math": avg_math,
+            "Physics": avg_physics,
+            "Python": avg_python
+        }
+
+        weak_subject = min(averages, key=averages.get)
+        topper = max(students, key=lambda x: x["total"])
+
+        class_avg_total = avg_math + avg_physics + avg_python
+
+        for student in students:
+            if student["total"] > class_avg_total:
+                student["performance"] = "Above Average"
+            elif student["total"] < class_avg_total:
+                student["performance"] = "Below Average"
+            else:
+                student["performance"] = "Average"
+
+        def get_grade(avg):
+            if avg >= 90:
+                return "Excellent"
+            elif avg >= 75:
+                return "Good"
+            elif avg >= 50:
+                return "Average"
+            else:
+                return "Needs Improvement"
+
+        return render_template(
+            "result.html",
+            students=students,
+            topper=topper,
+            avg_math=avg_math,
+            avg_physics=avg_physics,
+            avg_python=avg_python,
+            weak_subject=weak_subject,
+            grade_math=get_grade(avg_math),
+            grade_physics=get_grade(avg_physics),
+            grade_python=get_grade(avg_python)
+        )
+
     except Exception as e:
-        return f"Error processing file: {str(e)}"
+        return f"Something went wrong while processing the file. Error: {str(e)}"
 
     if not students:
         return "Uploaded file is empty or invalid format."
