@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analysis Result</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to right, #1f4037, #99f2c8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 750px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background-color: #1f4037;
+            color: white;
+            padding: 10px;
+        }
+
+        td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #d1f0e0;
+        }
+
+        .topper-row {
+            background-color: #ffeaa7 !important;
+            font-weight: bold;
+        }
+
+        .summary {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        .weak {
+            color: red;
+            font-weight: bold;
+        }
+
+        .btn {
+            display: block;
+            width: fit-content;
+            margin: 25px auto 0;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #1f4037;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: #16312b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>📊 Student Performance Report</h1>
+
+        <h2>Student Details</h2>
+
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Math</th>
+                <th>Physics</th>
+                <th>Python</th>
+                <th>Total</th>
+                <th>Performance</th>
+            </tr>
+
+            {% for student in students %}
+            <tr class="{% if student.name == topper.name %}topper-row{% endif %}">
+                <td>{{ student.name }}</td>
+                <td>{{ student.math }}</td>
+                <td>{{ student.physics }}</td>
+                <td>{{ student.python }}</td>
+                <td>{{ student.total }}</td>
+                <td>{{ student.performance }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <div class="summary">
+            <p><b>🏆 Topper:</b> {{ topper.name }} ({{ topper.total }} marks)</p>
+
+            <p>Average Math: <b>{{ avg_math }}</b> ({{ grade_math }})</p>
+            <p>Average Physics: <b>{{ avg_physics }}</b> ({{ grade_physics }})</p>
+            <p>Average Python: <b>{{ avg_python }}</b> ({{ grade_python }})</p>
+
+            <p class="weak">Weakest Subject: {{ weak_subject }}</p>
+        </div>
+<h2>📊 Subject Average Chart</h2>
+<canvas id="avgChart"></canvas>
+        <h2>📈 Student Total Comparison</h2>
+<canvas id="studentChart"></canvas>
+        <a href="/" class="btn">⬅ Go Back</a>
+    </div>
+</body>
+<script>
+    const ctx = document.getElementById('avgChart').getContext('2d');
+
+    const avgChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Math', 'Physics', 'Python'],
+            datasets: [{
+                label: 'Average Marks',
+                data: [{{ avg_math }}, {{ avg_physics }}, {{ avg_python }}],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(75, 192, 192, 0.6)'
+                ],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+</script>
+<script>
+    const studentCtx = document.getElementById('studentChart').getContext('2d');
+
+    const studentNames = [
+        {% for student in students %}
+            "{{ student.name }}",
+        {% endfor %}
+    ];
+
+    const studentTotals = [
+        {% for student in students %}
+            {{ student.total }},
+        {% endfor %}
+    ];
+
+    const studentChart = new Chart(studentCtx, {
+        type: 'bar',
+        data: {
+            labels: studentNames,
+            datasets: [{
+                label: 'Total Marks',
+                data: studentTotals,
+                backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 300
+                }
+            }
+        }
+    });
+</script>
+</html>
