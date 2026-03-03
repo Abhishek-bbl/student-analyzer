@@ -22,25 +22,32 @@ def analyze():
     stream = file.stream.read().decode("UTF8").splitlines()
     reader = csv.DictReader(stream)
 
-    for row in reader:
-        name = row["Name"]
-        math = int(row["Math"])
-        physics = int(row["Physics"])
-        python = int(row["Python"])
+    try:
+        for row in reader:
+            name = row["Name"]
+            math = int(row["Math"])
+            physics = int(row["Physics"])
+            python = int(row["Python"])
 
-        math_marks.append(math)
-        physics_marks.append(physics)
-        python_marks.append(python)
+            math_marks.append(math)
+            physics_marks.append(physics)
+            python_marks.append(python)
 
-        total = math + physics + python
+            total = math + physics + python
 
-        students.append({
-            "name": name,
-            "math": math,
-            "physics": physics,
-            "python": python,
-            "total": total
-        })
+            students.append({
+                "name": name,
+                "math": math,
+                "physics": physics,
+                "python": python,
+                "total": total
+            })
+
+    except Exception as e:
+        return f"Error processing file: {str(e)}"
+
+    if not students:
+        return "Uploaded file is empty or invalid format."
 
     avg_math = sum(math_marks) / len(math_marks)
     avg_physics = sum(physics_marks) / len(physics_marks)
